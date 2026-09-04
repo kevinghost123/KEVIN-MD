@@ -1,4 +1,8 @@
-const { default: makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys");
+const {
+  default: makeWASocket,
+  useMultiFileAuthState
+} = require("@whiskeysockets/baileys");
+
 const pino = require("pino");
 const config = require("./config");
 const fs = require("fs");
@@ -13,8 +17,8 @@ fs.readdirSync("./plugins").forEach((file) => {
 });
 
 async function startBot() {
-
-  const { state, saveCreds } = await useMultiFileAuthState("./session");
+  const { state, saveCreds } =
+    await useMultiFileAuthState("./session");
 
   const sock = makeWASocket({
     auth: state,
@@ -29,11 +33,10 @@ async function startBot() {
     }
   });
 
-
   sock.ev.on("messages.upsert", async ({ messages }) => {
-
     const msg = messages[0];
-    if (!msg.message) return;
+
+    if (!msg?.message) return;
 
     const text =
       msg.message.conversation ||
@@ -44,20 +47,27 @@ async function startBot() {
 
     const command = text
       .slice(config.prefix.length)
-      .split(" ")[0]
+      .trim()
+      .split(/\s+/)[0]
       .toLowerCase();
 
-if (plugins[command]) {
-  const args = text
-    .slice(config.prefix.length)
-    .trim()
-    .split(/\s+/)
-    .slice(1);
+    if (plugins[command]) {
+      const args = text
+        .slice(config.prefix.length)
+        .trim()
+        .split(/\s+/)
+        .slice(1);
 
-  try {
-    await plugins[command].run(sock, msg, args);
-  } catch (error) {
-    console.error(`Command error [${command}]:`, error);
-  }
+      try {
+        await plugins[command].run(sock, msg, args);
+      } catch (error) {
+        console.error(
+          `Command error [${command}]:`,
+          error
+        );
+      }
+    }
+  });
 }
+
 startBot();
