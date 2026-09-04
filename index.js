@@ -47,13 +47,17 @@ async function startBot() {
       .split(" ")[0]
       .toLowerCase();
 
+if (plugins[command]) {
+  const args = text
+    .slice(config.prefix.length)
+    .trim()
+    .split(/\s+/)
+    .slice(1);
 
-    if (plugins[command]) {
-      plugins[command].run(sock, msg);
-    }
-
-  });
-
+  try {
+    await plugins[command].run(sock, msg, args);
+  } catch (error) {
+    console.error(`Command error [${command}]:`, error);
+  }
 }
-
 startBot();
