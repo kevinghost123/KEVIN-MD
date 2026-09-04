@@ -1,7 +1,7 @@
 {
   "name": "kevin-md",
   "version": "1.0.0",
-  "description": "KEVIN-MD WhatsApp Channel Song Bot",
+  "description": "KEVIN-MD WhatsApp Bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -10,5 +10,8 @@
     "@whiskeysockets/baileys": "latest",
     "pino": "latest",
     "fs-extra": "latest"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
