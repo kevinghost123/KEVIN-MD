@@ -4,7 +4,6 @@ const {
 
 module.exports = {
   name: "postaudio",
-  description: "Post an authorized audio file to a WhatsApp Channel",
 
   run: async (sock, msg, args) => {
     const channelJid = args[0];
@@ -15,45 +14,45 @@ module.exports = {
       });
     }
 
-    const quoted =
-      msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+    const contextInfo =
+      msg.message?.extendedTextMessage?.contextInfo;
 
-    if (!quoted?.audioMessage) {
+    const quotedMessage = contextInfo?.quotedMessage;
+
+    if (!quotedMessage?.audioMessage) {
       return sock.sendMessage(msg.key.remoteJid, {
-        text: "❌ Audio message එකක් reply කරලා .postaudio <Channel JID> දාන්න."
+        text: "❌ Audio message එකකට reply කරලා command එක දාන්න."
       });
     }
 
     try {
-      const buffer = await downloadMediaMessage(
+      const quotedKey = {
+        remoteJid: msg.key.remoteJid,
+        id: contextInfo.stanzaId,
+        participant: contextInfo.participant
+      };
+
+      const audio = await downloadMediaMessage(
         {
-          key: msg.message.extendedTextMessage.contextInfo.stanzaId
-            ? {
-                remoteJid: msg.key.remoteJid,
-                id: msg.message.extendedTextMessage.contextInfo.stanzaId,
-              }
-            : msg.key,
-          message: quoted
+          key: quotedKey,
+          message: quotedMessage
         },
         "buffer",
-        {},
-        {
-          logger: console
-        }
+        {}
       );
 
       await sock.sendMessage(channelJid, {
-        audio: buffer,
-        mimetype: quoted.audioMessage.mimetype || "audio/mpeg",
+        audio,
+        mimetype: quotedMessage.audioMessage.mimetype || "audio/mpeg",
         ptt: false
       });
 
       await sock.sendMessage(msg.key.remoteJid, {
-        text: "✅ Audio Channel එකට post කරන්න try කළා."
+        text: "✅ Audio එක Channel එකට post කරන්න try කළා."
       });
 
     } catch (error) {
-      console.error("PostAudio Error:", error);
+      console.error("POSTAUDIO ERROR:", error);
 
       await sock.sendMessage(msg.key.remoteJid, {
         text: "❌ Audio post failed."
