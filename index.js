@@ -1,6 +1,16 @@
 const { default: makeWASocket, useMultiFileAuthState } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 const config = require("./config");
+const fs = require("fs");
+
+const plugins = {};
+
+fs.readdirSync("./plugins").forEach((file) => {
+  if (file.endsWith(".js")) {
+    const plugin = require("./plugins/" + file);
+    plugins[plugin.name] = plugin;
+  }
+});
 
 async function startBot() {
 
@@ -15,14 +25,10 @@ async function startBot() {
 
   sock.ev.on("connection.update", ({ connection }) => {
     if (connection === "open") {
-      console.log(`✅ ${config.botName} Connected`);
-    }
-
-    if (connection === "close") {
-      console.log("❌ Connection Closed");
-      startBot();
+      console.log("✅ KEVIN-MD Connected");
     }
   });
+
 
   sock.ev.on("messages.upsert", async ({ messages }) => {
 
@@ -38,16 +44,16 @@ async function startBot() {
 
     const command = text
       .slice(config.prefix.length)
-      .split(" ")[0];
+      .split(" ")[0]
+      .toLowerCase();
 
-    if (command === "ping") {
-      await sock.sendMessage(
-        msg.key.remoteJid,
-        { text: "🏓 KEVIN-MD Online ✅" }
-      );
+
+    if (plugins[command]) {
+      plugins[command].run(sock, msg);
     }
 
   });
+
 }
 
 startBot();
